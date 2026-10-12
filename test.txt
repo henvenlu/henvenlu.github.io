@@ -1,28 +1,65 @@
-# 读取输入
-n = int(input())
-state = list(map(int, input().split()))
-days = int(input())
+import sys
+sys.setrecursionlimit(1 << 25)
 
-for _ in range(days):
-    new_state = [0]*n
-    for i in range(n):
-        if i == 0:
-            # 最左：左=0，右=state[1]
-            left = 0
-            right = state[1]
-        elif i == n-1:
-            # 最右：右=0，左=state[-2]
-            left = state[-2]
-            right = 0
-        else:
-            left = state[i-1]
-            right = state[i+1]
-        
-        if left == right:
-            new_state[i] = 0
-        else:
-            new_state[i] = 1
-    state = new_state
+def main():
+    input = sys.stdin.read().split()
+    ptr = 0
+    num = int(input[ptr]) # N 城市总数
+    ptr +=1
+    roads, numCities = int(input[ptr]), int(input[ptr+1])
+    ptr +=2
 
-# 输出结果，空格隔开
-print(' '.join(map(str, state)))
+    # 建邻接表
+    adj = [[] for _ in range(num+1)]
+    edge_list = []
+    for _ in range(roads):
+        u = int(input[ptr])
+        v = int(input[ptr+1])
+        ptr +=2
+        if u > v:
+            u, v = v, u
+        edge_list.append( (u, v) )
+        adj[u].append(v)
+        adj[v].append(u)
+
+    # 迭代DFS求子树大小
+    size = [1]*(num+1)
+    visited = [False]*(num+1)
+    stack = [(1, -1, False)] # node, parent, is_processed
+
+    while stack:
+        node, parent, processed = stack.pop()
+        if processed:
+            for neighbor in adj[node]:
+                if neighbor != parent:
+                    size[node] += size[neighbor]
+        else:
+            visited[node] = True
+            stack.append( (node, parent, True) )
+            for neighbor in adj[node]:
+                if not visited[neighbor] and neighbor != parent:
+                    stack.append( (neighbor, node, False) )
+
+    max_toll = -1
+    best_pair = None
+
+    # 遍历每一条边
+    for (u, v) in edge_list:
+        # 看哪个是子节点
+        if size[u] < size[v]:
+            s = size[u]
+        else:
+            s = size[v]
+        toll = s * (num - s)
+        # 更新最优
+        if toll > max_toll:
+            max_toll = toll
+            best_pair = (u, v)
+        elif toll == max_toll:
+            # 字典序更小优先
+            if (u, v) < best_pair:
+                best_pair = (u, v)
+    print(best_pair[0], best_pair[1])
+
+if __name__ == "__main__":
+    main()
