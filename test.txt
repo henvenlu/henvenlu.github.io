@@ -1,1 +1,28 @@
-test
+# 读取输入
+n = int(input())
+state = list(map(int, input().split()))
+days = int(input())
+
+for _ in range(days):
+    new_state = [0]*n
+    for i in range(n):
+        if i == 0:
+            # 最左：左=0，右=state[1]
+            left = 0
+            right = state[1]
+        elif i == n-1:
+            # 最右：右=0，左=state[-2]
+            left = state[-2]
+            right = 0
+        else:
+            left = state[i-1]
+            right = state[i+1]
+        
+        if left == right:
+            new_state[i] = 0
+        else:
+            new_state[i] = 1
+    state = new_state
+
+# 输出结果，空格隔开
+print(' '.join(map(str, state)))
